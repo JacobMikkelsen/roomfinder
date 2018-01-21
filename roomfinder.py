@@ -22,38 +22,38 @@ def parsePage (contents):
     
     return rooms
 
-def timeToValue(time):
-    #TODO DST shenanigans
-    #TODO How should time be input?
-    
-    #Assuming time is a integer value 7-22
-    return time * 2
-
-def currentTimeValue():
-    
-    dt = datetime.datetime.now()
+def timeToValue(dt):
     hour = dt.hour
     half = 1 if dt.minute >= 30 else 0
     
     return 2 * hour + half
 
 #TODO URL includes database set - would want to update over time?
-url = "http://nss.cse.unsw.edu.au/tt/find_rooms.php?dbafile=2017-KENS-COFA.DBA&campus=KENS"
+url = "http://nss.cse.unsw.edu.au/tt/find_rooms.php?dbafile=2018-KENS-COFA.DBA&campus=KENS"
 
-currentTime = currentTimeValue()
+dt = datetime.datetime.now()
+
+currentTime = timeToValue(dt)
 
 fr_time = str(currentTime)
 to_time = str(currentTime + 2)
 
-print("Times between " + fr_time + " and " + to_time)
+days = dt.strftime("%A")
+# TODO %e not supported by Windows?
+fr_date = dt.strftime("%a %e %b %Y")
+to_date = fr_date
 
-days = "Monday"
+print("Date: " + fr_date)
+
+print("Times between " + fr_time + " and " + to_time)
 
 # Maybe the Requests library or whatever makes constructing this nicer?
 post_fields = {
                 "search_rooms": "Search",
                 "days[]": days,
+                "fr_date": fr_date,
                 "fr_time": fr_time,
+                "to_date": to_date,
                 "to_time": to_time,
                 "RU[]": ["RU_GP-LEC", "RU_GP-TUTSEM"]
             }
