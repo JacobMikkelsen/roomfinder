@@ -1,14 +1,25 @@
-#https://stackoverflow.com/questions/11322430/how-to-send-post-request
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+import urllib
+import httplib
 
 import re
 import datetime
 
 def getPage (url, post_fields):
-    # Note: True in urlencode is needed to handle the forms array data fields
-    request = Request(url, urlencode(post_fields, True).encode())
-    return urlopen(request).read().decode()
+    # https://docs.python.org/2.4/lib/httplib-examples.html
+    headers = {
+                "Content-type": "application/x-www-form-urlencoded",
+                "Accept": "text/plain"
+            }
+    
+    # True needed for array values
+    params = urllib.urlencode(post_fields, True)
+    
+    conn = httplib.HTTPConnection("nss.cse.unsw.edu.au")
+    conn.request("POST", "/tt/find_rooms.php?dbafile=2018-KENS-COFA.DBA&campus=KENS", params, headers)
+    
+    response = conn.getresponse().read()
+    
+    return response
 
 def parsePage (contents):
     
