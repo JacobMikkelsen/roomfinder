@@ -6,7 +6,7 @@ import httplib
 import re
 import datetime
 
-def getPage (url, post_fields):
+def getPage (post_fields):
     # https://docs.python.org/2.4/lib/httplib-examples.html
     headers = {
                 "Content-type": "application/x-www-form-urlencoded",
@@ -16,8 +16,11 @@ def getPage (url, post_fields):
     # True needed for array values
     params = urllib.urlencode(post_fields, True)
     
-    conn = httplib.HTTPConnection("nss.cse.unsw.edu.au")
-    conn.request("POST", "/tt/find_rooms.php?dbafile=2018-KENS-COFA.DBA&campus=KENS", params, headers)
+    host = "nss.cse.unsw.edu.au"
+    url = "/tt/find_rooms.php?dbafile=2018-KENS-COFA.DBA&campus=KENS"
+    
+    conn = httplib.HTTPConnection(host)
+    conn.request("POST", url, params, headers)
     
     response = conn.getresponse().read()
     
@@ -45,6 +48,7 @@ def main ():
     #TODO URL includes database set - would want to update over time?
     url = "http://nss.cse.unsw.edu.au/tt/find_rooms.php?dbafile=2018-KENS-COFA.DBA&campus=KENS"
 
+    # TODO GOSH DARN TIMEZONES
     dt = datetime.datetime.now()
 
     currentTime = timeToValue(dt)
@@ -72,7 +76,7 @@ def main ():
                     "RU[]": ["RU_GP-LEC", "RU_GP-TUTSEM"]
                 }
 
-    contents = getPage(url, post_fields)
+    contents = getPage(post_fields)
     rooms = parsePage(contents)
 
     print ("Found " + str(len(rooms)) + " rooms")
