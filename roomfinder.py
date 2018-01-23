@@ -114,6 +114,9 @@ def main ():
 
     print("Times between " + fr_time + " and " + to_time)
 
+    # TODO looks like the fr_week and to_week are the important fields, which may
+    #      be calculated from the other calendar values
+
     # Maybe the Requests library or whatever makes constructing this nicer?
     post_fields = {
                     "search_rooms": "Search",
