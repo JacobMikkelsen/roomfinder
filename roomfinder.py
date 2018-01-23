@@ -9,6 +9,12 @@ import subprocess
 import re
 import datetime
 
+import cgi
+import cgitb
+
+print("Content-type: text/html\n")
+cgitb.enable()
+
 def getPage (post_fields):
     # https://docs.python.org/2.4/lib/httplib-examples.html
     headers = {
@@ -56,7 +62,7 @@ def getDateTime ():
     output, _ = p.communicate()
 
     sections = re.findall("(\S+)", output.rstrip())
-    print(sections)
+    # print(sections)
     
     values = [int(value) for value in sections]
     
@@ -76,11 +82,12 @@ def getPostFields():
     
     fr_week = to_week = dt.strftime("%V")
     
-    print("week " + fr_week + " to week " + to_week)
-
-    print("Times between " + fr_time + " and " + to_time)
+    # print("week " + fr_week + " to week " + to_week)
+    minuteStamp = "30" if dt.minute >= 30 else "00"
+    print("Anyway, these rooms are available between " + ':'.join([str(dt.hour), minuteStamp]) + " and " + ':'.join([str(dt.hour + 1), minuteStamp]) + "\n")
 
     # Maybe the Requests library or whatever makes constructing this nicer?
+    # As far as I can tell, the week is the value used by the server?
     return {
             "search_rooms": "Search",
             "days[]": days,
@@ -90,6 +97,13 @@ def getPostFields():
             "to_time": to_time,
             "RU[]": ["RU_GP-LEC", "RU_GP-TUTSEM"]
             }
+
+def navbar():
+
+    headerFile = "/home/jacowsyj/public_html/header.html"
+    with open(headerFile, 'r') as f:
+        for line in f:
+            print line
 
 def main ():
     post_fields = getPostFields()
@@ -102,4 +116,21 @@ def main ():
     for room in rooms:
         print(room[1])
 
+print """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Room Finder</title>
+    <link href='/css/bootstrap.css' rel='stylesheet'>
+    <link href='/css/custom.css' rel='stylesheet'>
+</head>
+<body>"""
+
+# navbar()
+
+print("<pre>How embarassing, this page is barely functional!")
+
 main()
+
+print """    </pre>
+</body>"""
