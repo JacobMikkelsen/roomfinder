@@ -16,9 +16,10 @@ def getPage (post_fields):
                 "Accept": "text/plain"
             }
     
-    # True needed for array values
+    # True needed for array values in POST
     params = urllib.urlencode(post_fields, True)
     
+    #TODO URL includes database set - would want to update over time?
     host = "nss.cse.unsw.edu.au"
     url = "/tt/find_rooms.php?dbafile=2018-KENS-COFA.DBA&campus=KENS"
     
@@ -50,6 +51,7 @@ def getDateTime ():
     env = os.environ.copy()
     env["TZ"] = "Australia/Sydney"
     
+    # TODO Need to close the subprocess or anything?
     p = subprocess.Popen(["date", "+%Y %m %d %H %M"], env=env, stdout=subprocess.PIPE)
     output, _ = p.communicate()
 
@@ -62,13 +64,8 @@ def getDateTime ():
     
     return dt
 
-def main ():
-    #TODO URL includes database set - would want to update over time?
-    url = "http://nss.cse.unsw.edu.au/tt/find_rooms.php?dbafile=2018-KENS-COFA.DBA&campus=KENS"
-    
+def getPostFields():
     dt = getDateTime()
-    
-    # Need to close the subprocess or anything?
 
     currentTime = timeToValue(dt.hour, dt.minute)
 
@@ -77,26 +74,25 @@ def main ():
 
     days = dt.strftime("%A")
     
-    fr_date = dt.strftime("%a %d %b %Y")
-    to_date = fr_date
-
-    print("Date: " + fr_date)
+    fr_week = to_week = dt.strftime("%V")
+    
+    print("week " + fr_week + " to week " + to_week)
 
     print("Times between " + fr_time + " and " + to_time)
 
-    # TODO looks like the fr_week and to_week are the important fields, which may
-    #      be calculated from the other calendar values
-
     # Maybe the Requests library or whatever makes constructing this nicer?
-    post_fields = {
-                    "search_rooms": "Search",
-                    "days[]": days,
-                    "fr_date": fr_date,
-                    "fr_time": fr_time,
-                    "to_date": to_date,
-                    "to_time": to_time,
-                    "RU[]": ["RU_GP-LEC", "RU_GP-TUTSEM"]
-                }
+    return {
+            "search_rooms": "Search",
+            "days[]": days,
+            "fr_week": fr_week,
+            "to_week": to_week,
+            "fr_time": fr_time,
+            "to_time": to_time,
+            "RU[]": ["RU_GP-LEC", "RU_GP-TUTSEM"]
+            }
+
+def main ():
+    post_fields = getPostFields()
 
     contents = getPage(post_fields)
     rooms = parsePage(contents)
