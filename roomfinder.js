@@ -46,7 +46,42 @@ function sendRequest (){
 }
 
 function processResponse (response){
-    var regex = /(<tr class=\".+?tr>)/;
+    
+    var rows = getRows(response);
+    var rooms = getRooms(rows);
+    
+    var len = rooms.length;
+    
+    for (var i = 0; i < len; i++){
+        addToDOM(rooms[i][1]);
+    }
+}
+
+function getRows(response){
+    var rowPattern = /<tr class=\"[\s\S]+?tr>/g;
+    
+    return response.match(rowPattern);
+}
+
+function getRooms(rows){
+    var detailsPattern = /<td class=\"data\">(.+?)<\/td>/g;
+    var len = rows.length;
+    
+    // TODO: Set array length for performance?
+    var rooms = [];
+    
+    for (var i = 0; i < len; i++){
+        var details = [];
+        var match;
+        
+        while ((match = detailsPattern.exec(rows[i])) !== null){
+            details.push(match[1]);
+        }
+        
+        rooms.push(details);
+    }
+    
+    return rooms;
 }
 
 function addToDOM (string){
