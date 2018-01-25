@@ -1,6 +1,17 @@
 "use strict";
 
-// XMLHTTPRequest for POST etc.
+// https://www.epochconverter.com/weeknumbers
+Date.prototype.getWeek = function () {
+    var target  = new Date(this.valueOf());
+    var dayNr   = (this.getDay() + 6) % 7;
+    target.setDate(target.getDate() - dayNr + 3);
+    var firstThursday = target.valueOf();
+    target.setMonth(0, 1);
+    if (target.getDay() != 4) {
+        target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+    }
+    return 1 + Math.ceil((firstThursday - target) / 604800000);
+}
 
 function sendRequest (){
     // TODO This cors thing works but... Doesn't seem ideal
@@ -25,24 +36,46 @@ function sendRequest (){
         }
     };
 
+    // Note: Assuming Aus timezone
+    var d = new Date();
+    
+    var day = weekdayFromIndex(d.getDay());
+    
+    var fr_time = dateToTimeIndex(d);
+    var to_time = fr_time + 2;
+    
+    var week = d.getWeek();
+    
+    var roomTypes = ["RU_GP-LEC", "RU_GP-TUTSEM"];
+
     // TODO Entry calculation
     var form = new FormData();
     form.append("search_rooms", "Search");
-    form.append("days[]", "Wednesday");
-    form.append("fr_week", "4");
-    form.append("to_week", "4");
-    form.append("fr_time", "14");
-    form.append("to_time", "16");
-    form.append("RU[]", "RU_GP-LEC");
-    form.append("RU[]", "RU_GP-TUTSEM");
-    // "days[]": days,
-    // "fr_week": fr_week,
-    // "to_week": to_week,
-    // "fr_time": fr_time,
-    // "to_time": to_time,
-    // "RU[]": ["RU_GP-LEC", "RU_GP-TUTSEM"]
+    form.append("days[]", day.toString());
+    form.append("fr_week", week.toString());
+    form.append("to_week", week.toString());
+    form.append("fr_time", fr_time.toString());
+    form.append("to_time", to_time.toString());
+    form.append("RU[]", roomTypes);
+    
+    addToDOM(day + " [" + fr_time + ", " + to_time + "] " + week);
 
     request.send(form);
+}
+
+function dateToTimeIndex(d){
+    var hour = d.getHours();
+    
+    // Flag if we have 30 minutes or more
+    var half = d.getMinutes() >= 30 ? 1 : 0;
+    
+    return hour * 2 + half;
+}
+
+function weekdayFromIndex(index){
+    // TODO Error checking
+    var weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    return weekdays[index];
 }
 
 function processResponse (response){
@@ -92,7 +125,7 @@ function addToDOM (string){
 }
 
 function main (){
-    addToDOM("Helo");
+    addToDOM("Hello");
     sendRequest();
 }
 
