@@ -36,29 +36,30 @@ function sendRequest (){
         }
     };
 
-    // Note: Assuming Aus timezone
+    // TODO Assuming Aus timezone
     var d = new Date();
     
-    var day = weekdayFromIndex(d.getDay());
+    var dayString = weekdayFromIndex(d.getDay());
     
     var fr_time = dateToTimeIndex(d);
     var to_time = fr_time + 2;
     
     var week = d.getWeek();
-    
-    var roomTypes = ["RU_GP-LEC", "RU_GP-TUTSEM"];
 
-    // TODO Entry calculation
+    // TODO IE doesn't support FormData... craft our own string payload and use url encoded?
     var form = new FormData();
     form.append("search_rooms", "Search");
-    form.append("days[]", day.toString());
+    form.append("days[]", dayString);
     form.append("fr_week", week.toString());
     form.append("to_week", week.toString());
     form.append("fr_time", fr_time.toString());
     form.append("to_time", to_time.toString());
-    form.append("RU[]", roomTypes);
+    form.append("RU[]", "RU_GP-LEC");
+    form.append("RU[]", "RU_GP-TUTSEM");
     
-    addToDOM(day + " [" + fr_time + ", " + to_time + "] " + week);
+    var minString = d.getMinutes() >= 30 ? "30" : "00";
+    
+    addToDOM("Rooms free today between " + d.getHours() + ":" + minString + " and " + ((d.getHours() + 1)%24) + ":" + minString);
 
     request.send(form);
 }
@@ -74,13 +75,14 @@ function dateToTimeIndex(d){
 
 function weekdayFromIndex(index){
     // TODO Error checking
-    var weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    var weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     return weekdays[index];
 }
 
 function processResponse (response){
     
     var rows = getRows(response);
+    addToDOM("Found " + rows.length + " rooms");
     var rooms = getRooms(rows);
     
     var len = rooms.length;
@@ -118,14 +120,13 @@ function getRooms(rows){
 }
 
 function addToDOM (string){
-    var body = document.getElementsByTagName("body")[0];
+    var body = document.getElementsByClassName("container")[0];
     var p = document.createElement("p");
     p.appendChild(document.createTextNode(string));
     body.appendChild(p);
 }
 
 function main (){
-    addToDOM("Hello");
     sendRequest();
 }
 
