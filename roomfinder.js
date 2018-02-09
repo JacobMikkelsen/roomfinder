@@ -13,30 +13,27 @@ Date.prototype.getWeek = function () {
     return 1 + Math.ceil((firstThursday - target) / 604800000);
 }
 
-function sendRequest (){
-    // TODO This cors thing works but... Doesn't seem ideal
+function appendRoomTypes(form){
+    var roomTypes = document.getElementsByName("room_type");
 
-    var cors = "https://cors-anywhere.herokuapp.com/";
-    var url = "http://nss.cse.unsw.edu.au/tt/find_rooms.php?dbafile=2018-KENS-COFA.DBA&campus=KENS";
-
-    var request = new XMLHttpRequest();
-    request.open("POST", cors + url);
-    
-    request.onreadystatechange = function(){
-        // TODO Could improve by checking for 3, 'progress', so we can update
-        //      the DOM as more comes in. The whole content comes in each time
-        //      though... So we could peg the last character, len(response), to
-        //      start reading from in the next response? Process the new stuff
-        //      each time?
-        
-        // Note: 4 is DONE
-        if (request.readyState === 4){
-            // TODO check response status to see if it actually worked
-            processResponse(request.responseText);
+    for (var i = 0; i < roomTypes.length; i++){
+        if (roomTypes[i].checked){
+            console.log("Appending {RU[], " + roomTypes[i].value + "}");
+            form.append("RU[]", roomTypes[i].value);
         }
-    };
+    }
 
-    // TODO Assuming Aus timezone
+    // form.append("RU[]", "RU_GP-LEC");
+    // form.append("RU[]", "RU_GP-TUTSEM");
+}
+
+function findRooms(){
+
+    // TODO, wipe existing content in DOM, add spinner
+
+    var request = createRequest();
+
+    // TODO Assuming user is in UNSW timezone
     var d = new Date();
     
     var dayString = weekdayFromIndex(d.getDay());
@@ -54,15 +51,43 @@ function sendRequest (){
     form.append("to_week", week.toString());
     form.append("fr_time", fr_time.toString());
     form.append("to_time", to_time.toString());
-    form.append("RU[]", "RU_GP-LEC");
-    form.append("RU[]", "RU_GP-TUTSEM");
+
+    appendRoomTypes(form);
     
     var minString = d.getMinutes() >= 30 ? "30" : "00";
-    
+
     addToDOM("Rooms free today between " + d.getHours() + ":" + minString + " and " + ((d.getHours() + 1)%24) + ":" + minString);
 
     request.send(form);
 }
+
+function createRequest(){
+    // TODO This cors thing works but... Doesn't seem ideal
+
+    var cors = "https://cors-anywhere.herokuapp.com/";
+    var url = "http://nss.cse.unsw.edu.au/tt/find_rooms.php?dbafile=2018-KENS-COFA.DBA&campus=KENS";
+
+    var request = new XMLHttpRequest();
+    request.open("POST", cors + url);
+    
+    request.onreadystatechange = function(){
+        // TODO Could improve by checking for 3, 'progress', so we can update
+        //      the DOM as more comes in. The whole content comes in each time
+        //      though... So we could peg the last character, len(response), to
+        //      start reading from in the next response? Process the new stuff
+        //      each time?
+        
+        // TODO wipe exisiting content in DOM, then add the data we got
+
+        // Note: 4 is DONE
+        if (request.readyState === 4){
+            // TODO check response status to see if it actually worked
+            processResponse(request.responseText);
+        }
+    };
+
+    return request;
+};
 
 function dateToTimeIndex(d){
     var hour = d.getHours();
@@ -74,7 +99,7 @@ function dateToTimeIndex(d){
 }
 
 function weekdayFromIndex(index){
-    // TODO Error checking
+    // TODO Error checking, i.e. index out for bounds
     var weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     return weekdays[index];
 }
@@ -120,14 +145,15 @@ function getRooms(rows){
 }
 
 function addToDOM (string){
+    // TODO Gross! Get rid of this!
     var body = document.getElementsByClassName("container")[0];
     var p = document.createElement("p");
     p.appendChild(document.createTextNode(string));
     body.appendChild(p);
 }
 
-function main (){
-    sendRequest();
+function main(){
+    // Just for testing
 }
 
 main();
