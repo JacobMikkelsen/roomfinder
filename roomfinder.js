@@ -31,10 +31,13 @@ function findRooms(){
 
     // TODO, wipe existing content in DOM, add spinner
 
-    var request = createRequest();
+    clearResults();
+    addSpinner();
 
     // TODO Assuming user is in UNSW timezone
     var d = new Date();
+
+    var request = createRequest(d);
     
     var dayString = weekdayFromIndex(d.getDay());
     
@@ -53,15 +56,11 @@ function findRooms(){
     form.append("to_time", to_time.toString());
 
     appendRoomTypes(form);
-    
-    var minString = d.getMinutes() >= 30 ? "30" : "00";
-
-    addToDOM("Rooms free today between " + d.getHours() + ":" + minString + " and " + ((d.getHours() + 1)%24) + ":" + minString);
 
     request.send(form);
 }
 
-function createRequest(){
+function createRequest(d){
     // TODO This cors thing works but... Doesn't seem ideal
 
     var cors = "https://cors-anywhere.herokuapp.com/";
@@ -82,6 +81,11 @@ function createRequest(){
         // Note: 4 is DONE
         if (request.readyState === 4){
             // TODO check response status to see if it actually worked
+            clearResults();
+
+            var minString = d.getMinutes() >= 30 ? "30" : "00";
+            addToDOM("Rooms free today between " + d.getHours() + ":" + minString + " and " + ((d.getHours() + 1)%24) + ":" + minString);
+            
             processResponse(request.responseText);
         }
     };
@@ -145,11 +149,34 @@ function getRooms(rows){
 }
 
 function addToDOM (string){
-    // TODO Gross! Get rid of this!
-    var body = document.getElementsByClassName("container")[0];
+    var results_div = getResultsDiv();
     var p = document.createElement("p");
     p.appendChild(document.createTextNode(string));
-    body.appendChild(p);
+    results_div.appendChild(p);
+}
+
+function clearResults (){
+    var results_div = getResultsDiv();
+    // Note: Fast in IE, slower than replacing with "false" node in FF and Chrome?
+    // https://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
+    // TODO look at this again, but this is a quick way forward for now
+    results_div.innerHTML = '';
+}
+
+function addSpinner (){
+    // TODO use something less silly, and maybe even do via CSS animation?
+    var spinner = document.createElement("img");
+    spinner.setAttribute("src", "/images/spinner.gif");
+    spinner.style.display = "block";
+    spinner.style.marginLeft = "auto";
+    spinner.style.marginRight = "auto";
+
+    var resultsDiv = getResultsDiv();
+    resultsDiv.appendChild(spinner);
+}
+
+function getResultsDiv(){
+    return document.getElementById("results_div");
 }
 
 function main(){
